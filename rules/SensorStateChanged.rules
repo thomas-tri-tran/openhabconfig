@@ -1,0 +1,30 @@
+rule "When Sensor State Changed"
+when
+    Member of TNMEL01 changed
+then
+    val source = triggeringItem.name
+    val tenantId = source.split("_").get(0)
+    val customerId = source.split("_").get(1)
+    val deviceInfo = source.split("_").get(2)
+    val currentState = triggeringItem.state
+   
+    val details =  String::format("Tenant ID %s, Customer Id %s, Device ID %s, Current State %s",tenantId,customerId,deviceInfo,currentState)
+
+    logInfo("Triggered sensor","Source " + source)
+    logInfo("Detail","Detail " + details)
+    
+    val String BaseUrl = 'http://localhost:3000/device/TNMEL-SENSORS'
+
+    var n = now
+    var e = n.getMillis
+    
+    var cTs = String::format("\"timestamp\":\"%s\"",e.toString)
+    var cTenantId = String::format("\"tenantId\":\"%s\"",tenantId)
+    var cCustomerId = String::format("\"customerId\":\"%s\"",customerId)
+    var cState = String::format("\"currentState\":\"%s\"",currentState)
+    var deviceId = String.format("\"deviceId\":\"%s\"",deviceInfo)
+    var payload = String.format("\"payload\": {%s , %s}",cState,cTs)
+    var data = String.format("{%s,%s,%s,%s}",cTenantId,cCustomerId,deviceId,payload)
+    sendHttpPostRequest(BaseUrl,"application/json",data)
+    logInfo("Sensor State ChangedChanged","Sensor State Changed " + data)
+end
